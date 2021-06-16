@@ -3,28 +3,7 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-
-
-struct Position {
-    float x, y;
-
-    Position() {}
-
-    Position(float x, float y);
-
-    void operator+=(const Position &a);
-
-    void operator=(const Position &a);
-};
-
-struct Particle {
-    Particle() {};
-
-    Position best_position;
-    Position current_position;
-    Position velocity;
-    float best_value;
-};
+#include "cudapso.cuh"
 
 class Visualization {
 private:

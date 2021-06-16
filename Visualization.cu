@@ -16,7 +16,7 @@ Visualization::Visualization(float minX, float maxX, float minY, float maxY, flo
 
     sf::RenderWindow window(sf::VideoMode(width, height), "Particle swarm Optimisation - visualization",
                             sf::Style::Titlebar | sf::Style::Close);
-    window.setFramerateLimit(60);
+    window.setFramerateLimit(120);
     float **map;
     float max;
     float min;
@@ -29,9 +29,7 @@ Visualization::Visualization(float minX, float maxX, float minY, float maxY, flo
     createMap(minX, minY, f, map, max, min, image);
     tex.loadFromImage(image);
     background.setTexture(tex);
-
-
-    sf::CircleShape  particle(3, 8);
+    sf::CircleShape particle(3, 8);
     particle.setOrigin(3, 3);
     particle.setFillColor(sf::Color(100, 0, 0));
 
@@ -47,7 +45,6 @@ Visualization::Visualization(float minX, float maxX, float minY, float maxY, flo
             window.draw(particle);
         }
 
-
         window.display();
 
         if (frame == 20) {
@@ -57,8 +54,6 @@ Visualization::Visualization(float minX, float maxX, float minY, float maxY, flo
         if (iteration == posList.size()) iteration = posList.size() - 1;
         frame++;
     }
-
-
 }
 
 void Visualization::handleEvents(sf::RenderWindow &window) const {
@@ -98,19 +93,11 @@ void Visualization::calculateFunctionValues(float minX, float minY, float (*f)(f
             if (val < min) min = val;
         }
     }
-    std::cout << "min: " << min << std::endl;
-    std::cout << "max: " << max << std::endl;
 }
 
 void Visualization::setupScale(float minX, float maxX, float minY, float maxY) {
     double xScale = TARGET_WIDTH / (maxX - minX);
     double yScale = TARGET_HEIGHT / (maxY - minY);
-    std::cout << "minX: " << minX << std::endl;
-    std::cout << "maxX: " << maxX << std::endl;
-    std::cout << "minY: " << minY << std::endl;
-    std::cout << "maxY: " << maxY << std::endl;
-    std::cout << "xScale: " << xScale << std::endl;
-    std::cout << "yScale: " << yScale << std::endl;
 
     if (xScale < yScale) {
         scale = xScale;
@@ -121,28 +108,12 @@ void Visualization::setupScale(float minX, float maxX, float minY, float maxY) {
         height = TARGET_HEIGHT;
         width = (maxX - minX) * scale;
     }
-    std::cout << "scale: " << scale << std::endl;
-    std::cout << "Creating window - width: " << width << ", height: " << height << std::endl;
 }
 
 Position Visualization::particleToPixel(Position particle) {
-    //std::cout << (particle.x - minX) * scale << ", " << (particle.y - minY) * scale << std::endl;
     return Position((particle.x - minX) * scale, (particle.y - minY) * scale);
 }
 
 Position Visualization::pixelToParticle(Position pixel) {
     return Position(pixel.x / scale + minX, pixel.y / scale + minY);
 }
-
-void Position::operator=(const Position &a) {
-    x = a.x;
-    y = a.y;
-}
-
-void Position::operator+=(const Position &a) {
-    x = x + a.x;
-    y = y + a.y;
-}
-
-Position::Position(float x, float y) : x(x), y(y) {}
-

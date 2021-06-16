@@ -4,11 +4,16 @@
 #include <cmath>
 #include <ctime>
 #include <SFML/Graphics.hpp>
-#include "pso.cuh"
+#include "cudapso.cuh"
 #include "Visualization.cuh"
 
 
-float f1(float x, float y) {
+__device__ __host__ float f2(float x, float y) {
+    return 0.01 * (x * x + y * y) - 5;
+}
+
+
+float f(float x, float y) {
     return 0.01 * (x * x + y * y) - 5;
 }
 
@@ -39,7 +44,6 @@ int main() {
     srand(seed);
     helloGPU();
 
-
     std::vector<std::vector<Particle>> posList;
 
     for (int i =0;i< 120; i++)
@@ -48,7 +52,7 @@ int main() {
         posList.push_back(pos);
     }
 
-    Visualization v(minX, maxX, minY, maxY, f1, posList);
+    Visualization v(minX, maxX, minY, maxY, f, posList);
 
 
     return 0;

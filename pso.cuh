@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-void hello();
+void helloGPU();
 __global__ void hello_kernel();
 
 

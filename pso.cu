@@ -1,10 +1,6 @@
-//
-// Created by dedless on 24.05.2021.
-//
-
 #include "pso.cuh"
 
-void hello() {
+void helloGPU() {
     hello_kernel<<<1,1>>>();
 }
 

@@ -53,9 +53,69 @@ struct Particle {
     float best_value;
 };
 
+enum FunctionType {
+    FuncA,
+    FuncB,
+    FuncC
+};
 
-cudaError_t addWithCuda(int *c, const int *a, const int *b, unsigned int size);
-std::vector<std::vector<Particle>> performPso();
+/**
+ * Kernel initializing state for random numbers
+ * @param state - state to initialize
+ * @param seed  - seed with which state is initialized
+ */
+__global__ void init_kernel(curandState *state, long seed);
+
+/**
+ * Function returning index of the particle with the best position and updating team best position coordinates
+ * @param d_particles - all particles on the device
+ * @param team_best_value - best value achieved by particles yet
+ * @param team_best_index - index of the particle that achieved the best value
+ * @param N - number of particles
+ */
+__global__ void updateTeamBestIndex(Particle *d_particles,
+                                    float *team_best_value,
+                                    int *team_best_index, int N);
+
+/**
+ * Updates the velocity of each particle
+ * @param d_particles - all the particles on the device
+ * @param team_best_index - index of the particle that achieved the best value
+ * @param w - inertia of the particle (how fast it will move)
+ * @param c_ind - willingness of the particle to move to the best position known to this particle
+ * @param c_team - willingness of the particle to move to the best position known by team
+ * @param N - number of particles
+ * @param state - state used to get uniformly distributed float between 0.0 and 1.0
+ */
+__global__ void updateVelocity(Particle *d_particles, int *team_best_index,
+                               float w, float c_ind, float c_team, int N,
+                               curandState *state);
+/**
+ * Updates the position of the particles within boundaries
+ * @param d_particles - all the particles on the device
+ * @param N - number of particles
+ * @param min_x - minimum x boundary
+ * @param max_x - maximum x boundary
+ * @param min_y - minimum y boundary
+ * @param max_y - maximum y boundary
+ * @param fun - function in which we are looking for minimum
+ */
+__global__ void
+updatePosition(Particle *d_particles, int N, int min_x, int max_x, int min_y, int max_y, FunctionType fun);
+
+/**
+ * Main function performing PSO algorithm and returning particles positions over time to visualize the process
+ * @param fun - function in which we are looking for minimum
+ * @param min_x - minimum x boundary
+ * @param max_x - maximum x boundary
+ * @param min_y - minimum y boundary
+ * @param max_y - maximum y boundary
+ * @param particles_num - number of particles
+ * @param iterations - number of iterations
+ * @return vector containing particles over time (each iteration) to pass to visualization method
+ */
+std::vector<std::vector<Particle>>
+performPso(FunctionType fun, int min_x, int max_x, int min_y, int max_y, int particles_num, int iterations);
 
 
 #endif //PSO_CUDAPSO_CUH

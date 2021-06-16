@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <cmath>
-#include <ctime>
+#include <vector>
 #include <SFML/Graphics.hpp>
 #include "cudapso.cuh"
 #include "Visualization.cuh"
@@ -12,9 +12,6 @@ using namespace std;
 __device__ __host__ float calcValue(float x, float y) {
     return x * x + y * y;
 }
-
-const float SEARCH_MIN = -1000.0f;
-const float SEARCH_MAX = 1000.0f;
 
 float exampleFunA(float x, float y) {
     return x * x + y * y;
@@ -39,10 +36,6 @@ void userHello() {
 }
 
 int main() {
-    const int arraySize = 5;
-    const int a[arraySize] = {1, 2, 3, 4, 5};
-    const int b[arraySize] = {10, 20, 30, 40, 50};
-    int c[arraySize] = {0};
     char userInput;
     userHello();
     scanf(" %c", &userInput);

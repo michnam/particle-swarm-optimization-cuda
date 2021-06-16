@@ -26,6 +26,16 @@ __device__ __host__ float exampleFunA_GPU(Position p) {
     return p.x * p.x + p.y * p.y;
 }
 
+__device__ __host__ float exampleFunB_GPU(Position p) {
+    float new_x = p.x + 10;
+    return sin(new_x + p.y) + pow(new_x - p.y, 2) - 1.5 * new_x + 2.5 * p.y + 1 + new_x * p.y;
+}
+
+__device__ __host__ float exampleFunC_GPU(Position p) {
+    return pow(p.x + 2 * p.y - 7, 2) + pow(2 * p.x + p.y - 5, 2);
+    //return p.x * sin(sqrt(abs(p.x))) + p.y * sin(sqrt(abs(p.y)));
+}
+
 // Initialize state for random numbers
 __global__ void init_kernel(curandState *state, long seed) {
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
@@ -77,7 +87,7 @@ __global__ void updateVelocity(Particle *d_particles, int *team_best_index,
     }
 }
 
-__global__ void updatePosition(Particle *d_particles, int N) {
+__global__ void updatePosition(Particle *d_particles, int N, int min_x, int max_x, int min_y, int max_y, FunctionType fun) {
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
     if (idx < N) {
         d_particles[idx].current_position += d_particles[idx].velocity;
@@ -122,11 +132,11 @@ vector<vector<Particle>> performPso(FunctionType fun, int min_x, int max_x, int 
     init_kernel<<<1, 1>>>(state, clock());
 
     // Initialize particles
-    Particle *particles;
-    size_t particleSize = sizeof(Particle) * N;
+    Particle *particles, *d_particles;
+    size_t particleSize = sizeof(Particle) * particles_num;
 
     // initialize variables for team best
-    int *team_best_index;
+    int team_best_index, *d_team_best_index;
     float *team_best_value;
 
     particles = new Particle[particles_num];
@@ -135,28 +145,40 @@ vector<vector<Particle>> performPso(FunctionType fun, int min_x, int max_x, int 
     cudaMalloc(&team_best_value, sizeof(float));
 
     //  Initialize particles on host
-    for (int i = 0; i < N; i++) {
+    for (int i = 0; i < particles_num; i++) {
         // Random starting position
-        particles[i].current_position.x = randomFloat(SEARCH_MIN, SEARCH_MAX);
-        particles[i].current_position.y = randomFloat(SEARCH_MIN, SEARCH_MAX);
+        particles[i].current_position.x = randomFloat(search_min, search_max);
+        particles[i].current_position.y = randomFloat(search_min, search_max);
         particles[i].best_position.x = particles[i].current_position.x;
         particles[i].best_position.y = particles[i].current_position.y;
-        particles[i].best_value = calcValue(particles[i].best_position);
+        switch (fun) {
+            case FuncA: {
+                particles[i].best_value = exampleFunA_GPU(particles[i].best_position);
+                break;
+            }
+            case FuncB: {
+                particles[i].best_value = exampleFunB_GPU(particles[i].best_position);
+                break;
+            }
+            case FuncC: {
+                particles[i].best_value = exampleFunC_GPU(particles[i].best_position);
+                break;
+            }
+        }
         // Random starting velocity
         particles[i].velocity.x = randomFloat(search_min / 1000, search_max / 1000);
         particles[i].velocity.y = randomFloat(search_min / 1000, search_max / 1000);
     }
 
-    // Prefetch particles to gpu
-    cudaMemPrefetchAsync(particles, particleSize, device, 0);
-
+    cudaMemcpy(d_particles, particles, particleSize, cudaMemcpyHostToDevice);
     // Initialize team best index and value
     updateTeamBestIndex<<<1, 1>>>(d_particles, team_best_value, d_team_best_index, particles_num);
 
     int blockSize = 32;
-    int gridSize = (N + blockSize - 1) / blockSize;
+    int gridSize = (particles_num + blockSize - 1) / blockSize;
 
-
+    Particle *particlesGPU = new Particle[particleSize];
+    float team_best = 0;
 
     long totalTime = 0;
     for (int i = 0; i < iterations; i++) {
@@ -172,9 +194,10 @@ vector<vector<Particle>> performPso(FunctionType fun, int min_x, int max_x, int 
         std::vector<Particle> positionList(particlesGPU, particlesGPU + particles_num);
         positionHistory.push_back(positionList);
     }
-
-    // Wait for gpu to finish computation
     cudaDeviceSynchronize();
+
+    cudaMemcpy(&team_best_index, d_team_best_index, sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(particles, d_particles, particleSize, cudaMemcpyDeviceToHost);
 
     cout << "Team best value: " << particles[team_best_index].best_value << endl;
     cout << "Team best position: " << particles[team_best_index].best_position.x

@@ -10,8 +10,6 @@ Visualization::Visualization(float minX, float maxX, float minY, float maxY, flo
     int iteration = 0;
     int frame = 0;
 
-
-    std::cout << posList[0].size() << std::endl;
     setupScale(minX, maxX, minY, maxY);
     sf::RenderWindow window(sf::VideoMode(width, height), "Particle swarm Optimisation - visualization",
                             sf::Style::Titlebar | sf::Style::Close);

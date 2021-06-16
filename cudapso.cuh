@@ -3,21 +3,32 @@
 
 #include <iostream>
 
-void helloGPU();
-__global__ void hello_kernel();
-
+// Position struct contains x and y coordinates
 struct Position {
+    Position(int xx, int yy) {
+        x = xx;
+        y = yy;
+    }
+
+    Position()
+    {
+
+    }
+
     float x, y;
 
-    Position() {}
+    __device__ __host__ void operator+=(const Position &a) {
+        x = x + a.x;
+        y = y + a.y;
+    }
 
-    Position(float x, float y);
-
-    void operator+=(const Position &a);
-
-    void operator=(const Position &a);
+    __device__ __host__ void operator=(const Position &a) {
+        x = a.x;
+        y = a.y;
+    }
 };
 
+// Particle struct has current location, best location and velocity
 struct Particle {
     Particle() {};
 
@@ -25,8 +36,13 @@ struct Particle {
     Position current_position;
     Position velocity;
     float best_value;
+
+
 };
 
+
+cudaError_t addWithCuda(int *c, const int *a, const int *b, unsigned int size);
+std::vector<std::vector<Particle>> performPso();
 
 
 #endif //PSO_CUDAPSO_CUH

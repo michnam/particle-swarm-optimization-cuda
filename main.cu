@@ -7,53 +7,81 @@
 #include "cudapso.cuh"
 #include "Visualization.cuh"
 
+using namespace std;
 
-__device__ __host__ float f2(float x, float y) {
-    return 0.01 * (x * x + y * y) - 5;
+__device__ __host__ float calcValue(float x, float y) {
+    return x * x + y * y;
 }
 
+const float SEARCH_MIN = -1000.0f;
+const float SEARCH_MAX = 1000.0f;
 
-float f(float x, float y) {
-    return 0.01 * (x * x + y * y) - 5;
+double exampleFunA(double x, double y) {
+    printf("Hello from example function A");
+    return 1.0 / (x + y);
 }
 
-float minX = -100;
-float maxX = 300;
-float minY = -50;
-float maxY = 200;
-
-int size = 500;
-
-std::vector<Particle> randomPositions(int n) {
-    std::vector<Particle> p;
-    for (int i = 0; i < n; i++) {
-        Particle particle;
-        particle.current_position.x = (rand() % (int)(maxX - minX)) + minX;
-        particle.current_position.y = (rand() % (int)(maxY - minY)) + minY;
-        particle.velocity.x = rand() % 4 - 2;
-        particle.velocity.y = rand() % 4 - 2;
-
-        p.push_back(particle);
-    }
-    return p;
+double exampleFunB(double x, double y) {
+    printf("Hello from example function B");
+    return pow(x, y);
 }
 
+double exampleFunC(double x, double y) {
+    printf("Hello from example function C");
+    return y * sin(x) + x * cos(y);
+}
+
+void userHello() {
+    printf("Hi! Please select example function:\n");
+    printf("1: 1/(x + y)\n");
+    printf("2: x^y\n");
+    printf("3: y * sin x + x * cos y\n");
+    printf("Anything else: quit\n");
+    printf("Your choice: ");
+}
 
 int main() {
-    unsigned seed = time(nullptr);
-    srand(seed);
-    helloGPU();
+    const int arraySize = 5;
+    const int a[arraySize] = {1, 2, 3, 4, 5};
+    const int b[arraySize] = {10, 20, 30, 40, 50};
+    int c[arraySize] = {0};
+    char userInput;
+    bool isRunning = true;
+    cudaError_t cudaStatus;
 
-    std::vector<std::vector<Particle>> posList;
+    while (isRunning) {
+        userHello();
+        scanf(" %c", &userInput);
 
-    for (int i =0;i< 120; i++)
-    {
-        std::vector<Particle> pos = randomPositions(size);
-        posList.push_back(pos);
+        switch (userInput) {
+            case '1':
+            case '2':
+            case '3': {
+                // Add vectors in parallel.
+                std::vector<std::vector<Particle>> positions = performPso();
+
+                Visualization(SEARCH_MIN, SEARCH_MAX, SEARCH_MIN, SEARCH_MAX, calcValue, positions);
+
+
+                //printf("{1,2,3,4,5} + {10,20,30,40,50} = {%d,%d,%d,%d,%d}\n", c[0],
+                //       c[1], c[2], c[3], c[4]);
+
+                break;
+            }
+
+            default:
+                isRunning = false;
+        }
     }
 
-    Visualization v(minX, maxX, minY, maxY, f, posList);
-
+    // cudaDeviceReset must be called before exiting in order for profiling
+    // and tracing tools such as Nsight and Visual Profiler to show complete
+    // traces.
+    cudaStatus = cudaDeviceReset();
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaDeviceReset failed!");
+        return 1;
+    }
 
     return 0;
 }

@@ -6,14 +6,13 @@
 
 Visualization::Visualization(float minX, float maxX, float minY, float maxY, float (*f)(float, float),
                              std::vector<std::vector<Particle>> posList) : minX(minX),
-                                                                           maxX(maxX),
-                                                                           minY(minY),
-                                                                           maxY(maxY) {
+                                                                           minY(minY) {
     int iteration = 0;
     int frame = 0;
 
-    setupScale(minX, maxX, minY, maxY);
 
+    std::cout << posList[0].size() << std::endl;
+    setupScale(minX, maxX, minY, maxY);
     sf::RenderWindow window(sf::VideoMode(width, height), "Particle swarm Optimisation - visualization",
                             sf::Style::Titlebar | sf::Style::Close);
     window.setFramerateLimit(120);

@@ -9,18 +9,30 @@
  * Position struct contains x and y coordinates
  */
 struct Position {
-    Position(int xx, int yy) {
-        x = xx;
-        y = yy;
+    /**
+     * Position struct constructor
+     * @param new_x -  x coordinate of particle position
+     * @param new_y - y coordinate of particle position
+     */
+    Position(float new_x, float new_y) {
+        x = new_x;
+        y = new_y;
     }
 
-    Position()
-    {
+    /**
+     * Default constructor
+     */
+    Position() {
 
     }
 
-    float x, y;
+    float x; /**< X coordinate of the particle position */
+    float y; /**< Y coordinate of the particle position */
 
+    /**
+     *
+     * @param a - number that we are adding to our particle position
+     */
     __device__ __host__ void operator+=(const Position &a) {
         x = x + a.x;
         y = y + a.y;

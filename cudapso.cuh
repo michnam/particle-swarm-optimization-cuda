@@ -2,8 +2,12 @@
 #define PSO_CUDAPSO_CUH
 
 #include <iostream>
+#include <vector>
+#include <curand_kernel.h>
 
-// Position struct contains x and y coordinates
+/**
+ * Position struct contains x and y coordinates
+ */
 struct Position {
     Position(int xx, int yy) {
         x = xx;
@@ -31,13 +35,10 @@ struct Position {
 // Particle struct has current location, best location and velocity
 struct Particle {
     Particle() {};
-
     Position best_position;
     Position current_position;
     Position velocity;
     float best_value;
-
-
 };
 
 

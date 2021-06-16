@@ -46,7 +46,7 @@ Visualization::Visualization(float minX, float maxX, float minY, float maxY, flo
 
         window.display();
 
-        if (frame == 20) {
+        if (frame == 3) {
             frame = 0;
             iteration++;
         }
